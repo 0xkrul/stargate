@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>appliPandora</RootNamespace>
+    <AssemblyName>Stargate</AssemblyName>
+    <ApplicationIcon>Resources\stargate.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- SQLite driver -->
+    <PackageReference Include="System.Data.SQLite" Version="1.0.118" />
+    <!-- PDF generation -->
+    <PackageReference Include="iTextSharp" Version="5.5.13.4" />
+    <!-- Password hashing -->
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+  </ItemGroup>
+
+  <!-- Copy the database next to the executable so the connection string works -->
+  <ItemGroup>
+    <None Update="Stargate.db">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
