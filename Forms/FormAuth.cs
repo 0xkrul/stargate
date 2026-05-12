@@ -1,3 +1,6 @@
+using System.Data.SQLite;
+using appliPandora.Classes;
+
 namespace appliPandora.Forms
 {
     /// <summary>
@@ -25,10 +28,32 @@ namespace appliPandora.Forms
                 return;
             }
 
-            // TODO: interroger la table Admin via Connexion.Connec
-            //       et vérifier le mot de passe haché avec BCrypt.Net.BCrypt.Verify(mdp, hashBdd)
-            // Si OK : this.DialogResult = DialogResult.OK; this.Close();
-            // Sinon : afficher un message d'erreur
+            try
+            {
+                using SQLiteCommand cmd = new SQLiteCommand(
+                    "SELECT mdp FROM Admin WHERE login = @login", Connexion.Connec);
+                cmd.Parameters.AddWithValue("@login", login);
+                string? hashBdd = cmd.ExecuteScalar()?.ToString();
+                Connexion.FermerConnexion();
+
+                if (hashBdd != null && BCrypt.Net.BCrypt.Verify(mdp, hashBdd))
+                {
+                    this.DialogResult = DialogResult.OK;
+                    this.Close();
+                }
+                else
+                {
+                    MessageBox.Show("Login ou mot de passe incorrect.",
+                        "Authentification échouée", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtMdp.Clear();
+                    txtMdp.Focus();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erreur : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Connexion.FermerConnexion();
+            }
         }
 
         // ─── Bouton Annuler ───────────────────────────────────────────────────

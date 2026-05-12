@@ -1,6 +1,7 @@
 using System.Data;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
+using Font = iTextSharp.text.Font;
 
 namespace appliPandora.Classes
 {
@@ -97,26 +98,47 @@ namespace appliPandora.Classes
             doc.Add(new Paragraph(" "));
         }
 
-        // ─── Section : équipage ───────────────────────────────────────────────
         private static void AjouterSectionEquipage(Document doc, string nomPlanete, int numero)
         {
             doc.Add(new Paragraph("Équipage", PoliceSousTitle));
             doc.Add(new LineSeparator());
             doc.Add(new Paragraph(" "));
 
-            // TODO: construire un tableau iTextSharp avec les colonnes :
-            //       Matricule | Nom | Prénom | Type (Militaire/Civil) | Chef ?
             PdfPTable table = CreerTableauVide("Matricule", "Nom", "Prénom", "Type", "Chef ?");
 
-            // TODO: parcourir Composer JOIN Membre JOIN Militaire/Civil filtrés sur la mission
-            // Exemple de ligne :
-            // AjouterLigneTableau(table, "MCD-413", "ALGLAVE", "—", "Militaire", "✓", i);
+            if (!MesDatas.DsGlobal.Tables.Contains("Composer") ||
+                !MesDatas.DsGlobal.Tables.Contains("Membre"))
+            { doc.Add(table); doc.Add(new Paragraph(" ")); return; }
+
+            DataRow? mission = TrouverMission(nomPlanete, numero);
+            string chefMat   = mission?["matriculeChef"]?.ToString() ?? "";
+
+            DataRow[] composeurs = MesDatas.DsGlobal.Tables["Composer"]!
+                .Select($"nomPlanete = '{nomPlanete}' AND numeroMission = {numero}");
+
+            int i = 0;
+            foreach (DataRow c in composeurs)
+            {
+                string mat = c["matriculeMembre"].ToString()!;
+                DataRow[] mb = MesDatas.DsGlobal.Tables["Membre"]!.Select($"matricule = '{mat}'");
+                if (mb.Length == 0) continue;
+
+                bool estMil = MesDatas.DsGlobal.Tables.Contains("Militaire") &&
+                    MesDatas.DsGlobal.Tables["Militaire"]!
+                        .Select($"matriculeMembre = '{mat}'").Length > 0;
+
+                AjouterLigneTableau(table, i++,
+                    mat,
+                    mb[0]["nom"].ToString()!,
+                    mb[0]["prenom"].ToString()!,
+                    estMil ? "Militaire" : "Civil",
+                    mat == chefMat ? "★ Chef" : "");
+            }
 
             doc.Add(table);
             doc.Add(new Paragraph(" "));
         }
 
-        // ─── Section : captures ───────────────────────────────────────────────
         private static void AjouterSectionCaptures(Document doc, string nomPlanete, int numero)
         {
             doc.Add(new Paragraph("Bilan des captures", PoliceSousTitle));
@@ -125,14 +147,48 @@ namespace appliPandora.Classes
 
             PdfPTable table = CreerTableauVide("Espèce", "Objectif", "Captures réalisées", "Taux de réussite");
 
-            // TODO: lire la table locale BilanCapture_<nomPlanete>_<numero> du DataSet
-            //       ou recalculer depuis ObjectifCapture + Capturer
+            // Utiliser la table locale BilanCapture si elle est déjà construite
+            string nomBilan = $"Bilan_{nomPlanete}_{numero}";
+            if (MesDatas.DsGlobal.Tables.Contains(nomBilan))
+            {
+                int i = 0;
+                foreach (DataRow row in MesDatas.DsGlobal.Tables[nomBilan]!.Rows)
+                    AjouterLigneTableau(table, i++,
+                        row[0].ToString()!, row[1].ToString()!,
+                        row[2].ToString()!, row[3].ToString()!);
+            }
+            else if (MesDatas.DsGlobal.Tables.Contains("ObjectifCapture"))
+            {
+                DataRow[] objectifs = MesDatas.DsGlobal.Tables["ObjectifCapture"]!
+                    .Select($"nomPlanete = '{nomPlanete}' AND numeroMission = {numero}");
+                int i = 0;
+                foreach (DataRow obj in objectifs)
+                {
+                    int idEspece = Convert.ToInt32(obj["idEspeceEnnemi"]);
+                    int objectif = Convert.ToInt32(obj["objectif"]);
+                    int captures = 0;
+                    if (MesDatas.DsGlobal.Tables.Contains("Capturer"))
+                    {
+                        DataRow[] cap = MesDatas.DsGlobal.Tables["Capturer"]!
+                            .Select($"nomPlanete='{nomPlanete}' AND numeroMission={numero} AND idEspeceEnnemi={idEspece}");
+                        if (cap.Length > 0) captures = Convert.ToInt32(cap[0]["nombre"]);
+                    }
+                    string nomEspece = idEspece.ToString();
+                    if (MesDatas.DsGlobal.Tables.Contains("Espece"))
+                    {
+                        DataRow[] esp = MesDatas.DsGlobal.Tables["Espece"]!.Select($"id = {idEspece}");
+                        if (esp.Length > 0) nomEspece = esp[0]["nom"].ToString()!;
+                    }
+                    double taux = objectif > 0 ? Math.Round((double)captures / objectif * 100, 1) : 0;
+                    AjouterLigneTableau(table, i++,
+                        nomEspece, objectif.ToString(), captures.ToString(), $"{taux} %");
+                }
+            }
 
             doc.Add(table);
             doc.Add(new Paragraph(" "));
         }
 
-        // ─── Section : dépenses ───────────────────────────────────────────────
         private static void AjouterSectionDepenses(Document doc, string nomPlanete, int numero)
         {
             doc.Add(new Paragraph("Dépenses effectuées", PoliceSousTitle));
@@ -141,13 +197,44 @@ namespace appliPandora.Classes
 
             PdfPTable table = CreerTableauVide("Date", "Type", "Motif", "Montant ($ gal.)");
 
-            // TODO: parcourir MesDatas.DsGlobal["Depense"] filtrée sur la mission
+            if (MesDatas.DsGlobal.Tables.Contains("Depense"))
+            {
+                DataRow[] depenses = MesDatas.DsGlobal.Tables["Depense"]!
+                    .Select($"nomPlanete = '{nomPlanete}' AND numeroMission = {numero}", "dateD ASC");
+
+                int i = 0, total = 0;
+                foreach (DataRow d in depenses)
+                {
+                    string typeLib = d["idTypeDepense"].ToString()!;
+                    if (MesDatas.DsGlobal.Tables.Contains("TypeDepense"))
+                    {
+                        DataRow[] td = MesDatas.DsGlobal.Tables["TypeDepense"]!
+                            .Select($"id = {d["idTypeDepense"]}");
+                        if (td.Length > 0) typeLib = td[0]["libelle"].ToString()!;
+                    }
+                    int montant = Convert.ToInt32(d["montant"]);
+                    total += montant;
+                    AjouterLigneTableau(table, i++,
+                        d["dateD"].ToString()!, typeLib,
+                        d["motif"].ToString()!, $"{montant:N0}");
+                }
+
+                // Ligne total
+                BaseColor bgTotal = new BaseColor(240, 240, 240);
+                PdfPCell[] totalCells =
+                {
+                    new PdfPCell(new Phrase("", PoliceNormal))        { BackgroundColor = bgTotal },
+                    new PdfPCell(new Phrase("", PoliceNormal))        { BackgroundColor = bgTotal },
+                    new PdfPCell(new Phrase("TOTAL", PoliceBold))     { BackgroundColor = bgTotal, HorizontalAlignment = Element.ALIGN_RIGHT },
+                    new PdfPCell(new Phrase($"{total:N0} $ gal.", PoliceBold)) { BackgroundColor = bgTotal }
+                };
+                foreach (var tc in totalCells) table.AddCell(tc);
+            }
 
             doc.Add(table);
             doc.Add(new Paragraph(" "));
         }
 
-        // ─── Section : contacts ───────────────────────────────────────────────
         private static void AjouterSectionContacts(Document doc, string nomPlanete, int numero)
         {
             doc.Add(new Paragraph("Contacts avec informateurs", PoliceSousTitle));
@@ -156,7 +243,37 @@ namespace appliPandora.Classes
 
             PdfPTable table = CreerTableauVide("Date", "Nom de code", "Espèce", "Somme versée", "Appréciation");
 
-            // TODO: parcourir MesDatas.DsGlobal["Contact"] JOIN Informateur, filtré sur la mission
+            if (MesDatas.DsGlobal.Tables.Contains("Contact"))
+            {
+                DataRow[] contacts = MesDatas.DsGlobal.Tables["Contact"]!
+                    .Select($"nomPlanete = '{nomPlanete}' AND numeroMission = {numero}", "dateC ASC");
+
+                int i = 0;
+                foreach (DataRow c in contacts)
+                {
+                    string nomCode = c["nomCodeInformateur"].ToString()!;
+                    string nomEsp  = "";
+                    if (MesDatas.DsGlobal.Tables.Contains("Informateur"))
+                    {
+                        DataRow[] inf = MesDatas.DsGlobal.Tables["Informateur"]!
+                            .Select($"nomCode = '{nomCode}'");
+                        if (inf.Length > 0)
+                        {
+                            string idEsp = inf[0]["idEspeceEnnemi"].ToString()!;
+                            if (MesDatas.DsGlobal.Tables.Contains("Espece"))
+                            {
+                                DataRow[] esp = MesDatas.DsGlobal.Tables["Espece"]!
+                                    .Select($"id = {idEsp}");
+                                if (esp.Length > 0) nomEsp = esp[0]["nom"].ToString()!;
+                            }
+                        }
+                    }
+                    AjouterLigneTableau(table, i++,
+                        c["dateC"].ToString()!, nomCode, nomEsp,
+                        $"{c["sommeVersee"]} $ gal.",
+                        c["appreciation"]?.ToString() ?? "");
+                }
+            }
 
             doc.Add(table);
         }

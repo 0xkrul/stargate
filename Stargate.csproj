@@ -8,7 +8,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>appliPandora</RootNamespace>
     <AssemblyName>Stargate</AssemblyName>
-    <ApplicationIcon>Resources\stargate.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>

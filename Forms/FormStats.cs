@@ -1,5 +1,6 @@
 using System.Data;
 using System.Data.SQLite;
+using appliPandora.Classes;
 
 namespace appliPandora.Forms
 {
@@ -17,11 +18,35 @@ namespace appliPandora.Forms
 
         private void FormStats_Load(object sender, EventArgs e)
         {
-            // Remplir le ComboBox de membres (stats 1)
-            // TODO: lier cboMembre depuis MesDatas.DsGlobal["Membre"]
+            // ComboBox membres (stat 1)
+            if (MesDatas.DsGlobal.Tables.Contains("Membre"))
+            {
+                DataTable dtM = new DataTable();
+                dtM.Columns.Add("matricule", typeof(string));
+                dtM.Columns.Add("affichage", typeof(string));
+                foreach (DataRow r in MesDatas.DsGlobal.Tables["Membre"]!.Rows)
+                    dtM.Rows.Add(r["matricule"], $"{r["nom"]} {r["prenom"]} ({r["matricule"]})" );
+                cboMembre.DataSource    = dtM;
+                cboMembre.DisplayMember = "affichage";
+                cboMembre.ValueMember   = "matricule";
+                cboMembre.SelectedIndex = -1;
+            }
 
-            // Remplir le ComboBox de missions (stats 5)
-            // TODO: lier cboMission depuis MesDatas.DsGlobal["Mission"]
+            // ComboBox missions (stat 5) — clé composée encodée "nomPlanete|numero"
+            if (MesDatas.DsGlobal.Tables.Contains("Mission"))
+            {
+                DataTable dtMis = new DataTable();
+                dtMis.Columns.Add("cle",       typeof(string));
+                dtMis.Columns.Add("affichage", typeof(string));
+                foreach (DataRow r in MesDatas.DsGlobal.Tables["Mission"]!.Rows)
+                    dtMis.Rows.Add(
+                        $"{r["nomPlanete"]}|{r["numero"]}",
+                        $"{r["nomPlanete"]} #{r["numero"]}");
+                cboMission.DataSource    = dtMis;
+                cboMission.DisplayMember = "affichage";
+                cboMission.ValueMember   = "cle";
+                cboMission.SelectedIndex = -1;
+            }
         }
 
         // ─── Stat 1 ───────────────────────────────────────────────────────────
@@ -118,10 +143,11 @@ namespace appliPandora.Forms
         {
             if (cboMission.SelectedItem == null) return;
 
-            // La mission est identifiée par nomPlanete + numero
-            // TODO: extraire nomPlanete et numero depuis cboMission
-            string nomPlanete = ""; // TODO
-            int numero = 0;          // TODO
+            // Décoder la clé composée "nomPlanete|numero"
+            string cle   = cboMission.SelectedValue!.ToString()!;
+            string[] parts = cle.Split('|');
+            string nomPlanete = parts[0];
+            int    numero     = int.Parse(parts[1]);
 
             string sql = @"
                 SELECT i.nomCode, e.nom AS especeOrigine, SUM(c.sommeVersee) AS totalRecu
