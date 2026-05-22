@@ -157,3 +157,4 @@ namespace appliPandora.Forms
         private System.Windows.Forms.Button btnValiderObjectifs;
     }
 }
+

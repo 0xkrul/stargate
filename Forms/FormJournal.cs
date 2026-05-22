@@ -25,7 +25,7 @@ namespace appliPandora.Forms
             this.Load  += FormJournal_Load;
         }
 
-        private void FormJournal_Load(object sender, EventArgs e)
+        private void FormJournal_Load(object? sender, EventArgs e)
         {
             LierDonnees();
         }
@@ -67,25 +67,25 @@ namespace appliPandora.Forms
         }
 
         // ─── Navigation (BindingSource — aucun accès SQL) ─────────────────────
-        private void btnPremier_Click(object sender, EventArgs e)
+        private void btnPremier_Click(object? sender, EventArgs e)
         {
             _bsJournal.MoveFirst();
             MettreAJourPosition();
         }
 
-        private void btnPrecedent_Click(object sender, EventArgs e)
+        private void btnPrecedent_Click(object? sender, EventArgs e)
         {
             _bsJournal.MovePrevious();
             MettreAJourPosition();
         }
 
-        private void btnSuivant_Click(object sender, EventArgs e)
+        private void btnSuivant_Click(object? sender, EventArgs e)
         {
             _bsJournal.MoveNext();
             MettreAJourPosition();
         }
 
-        private void btnDernier_Click(object sender, EventArgs e)
+        private void btnDernier_Click(object? sender, EventArgs e)
         {
             _bsJournal.MoveLast();
             MettreAJourPosition();
@@ -104,3 +104,4 @@ namespace appliPandora.Forms
         }
     }
 }
+

@@ -46,11 +46,11 @@ namespace appliPandora.Forms
             // pnlNavigation
             this.pnlNavigation.Location = new System.Drawing.Point(100, 165);
             this.pnlNavigation.Size = new System.Drawing.Size(600, 30);
-            this.btnPremier.Location = new System.Drawing.Point(0, 0); this.btnPremier.Size = new System.Drawing.Size(80, 28); this.btnPremier.Text = "|◀ Premier"; this.btnPremier.Click += new System.EventHandler(this.btnPremier_Click);
+            this.btnPremier.Location = new System.Drawing.Point(0, 0); this.btnPremier.Size = new System.Drawing.Size(80, 28); this.btnPremier.Text = "|< Premier"; this.btnPremier.Click += new System.EventHandler(this.btnPremier_Click);
             this.btnPrecedent.Location = new System.Drawing.Point(90, 0); this.btnPrecedent.Size = new System.Drawing.Size(80, 28); this.btnPrecedent.Text = "◀ Précédent"; this.btnPrecedent.Click += new System.EventHandler(this.btnPrecedent_Click);
             this.lblPosition.Location = new System.Drawing.Point(180, 5); this.lblPosition.Size = new System.Drawing.Size(160, 20); this.lblPosition.TextAlign = System.Drawing.ContentAlignment.MiddleCenter; this.lblPosition.Text = "— / —";
-            this.btnSuivant.Location = new System.Drawing.Point(350, 0); this.btnSuivant.Size = new System.Drawing.Size(80, 28); this.btnSuivant.Text = "Suivant ▶"; this.btnSuivant.Click += new System.EventHandler(this.btnSuivant_Click);
-            this.btnDernier.Location = new System.Drawing.Point(440, 0); this.btnDernier.Size = new System.Drawing.Size(80, 28); this.btnDernier.Text = "Dernier ▶|"; this.btnDernier.Click += new System.EventHandler(this.btnDernier_Click);
+            this.btnSuivant.Location = new System.Drawing.Point(350, 0); this.btnSuivant.Size = new System.Drawing.Size(80, 28); this.btnSuivant.Text = "Suivant >"; this.btnSuivant.Click += new System.EventHandler(this.btnSuivant_Click);
+            this.btnDernier.Location = new System.Drawing.Point(440, 0); this.btnDernier.Size = new System.Drawing.Size(80, 28); this.btnDernier.Text = "Dernier >|"; this.btnDernier.Click += new System.EventHandler(this.btnDernier_Click);
             this.pnlNavigation.Controls.AddRange(new System.Windows.Forms.Control[] { this.btnPremier, this.btnPrecedent, this.lblPosition, this.btnSuivant, this.btnDernier });
 
             this.grpJournal.Controls.AddRange(new System.Windows.Forms.Control[] { this.lblJournalDate, this.txtJournalDate, this.lblJournalCommentaire, this.txtJournalCommentaire, this.pnlNavigation });
@@ -109,3 +109,4 @@ namespace appliPandora.Forms
         private System.Windows.Forms.DataGridView dgvContacts;
     }
 }
+

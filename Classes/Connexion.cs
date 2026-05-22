@@ -11,7 +11,7 @@ namespace appliPandora
     internal class Connexion
     {
 		// Objet Connection
-        private static SQLiteConnection connec;
+        private static SQLiteConnection? connec;
 
         // Constructeur privé pour empêcher l'instanciation directe depuis l'extérieur.
         private Connexion() { }
@@ -36,6 +36,7 @@ namespace appliPandora
                     catch (SQLiteException err) 
                     {
                         Console.WriteLine($"Erreur lors de l'ouverture de la connexion : {err.Message}");
+                        throw;
                     }
                 }
 				//Dans tous les cas on renvoie la connexion

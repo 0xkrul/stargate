@@ -1,0 +1,45 @@
+# Build outputs
+bin/
+obj/
+TestResults/
+
+# Visual Studio local state
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider / JetBrains
+.idea/
+*.DotSettings.user
+
+# VS Code local settings
+.vscode/
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+project.lock.json
+project.assets.json
+
+# Logs and diagnostics
+*.log
+*.tlog
+*.tmp
+*.temp
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local Python tooling used for PDF inspection
+.venv/
+__pycache__/
+*.py[cod]
+
+# Generated reports / ad-hoc exports
+*.pdf.tmp
+*.bak

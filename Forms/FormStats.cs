@@ -1,5 +1,6 @@
 using System.Data;
 using System.Data.SQLite;
+using appliPandora.Classes;
 
 namespace appliPandora.Forms
 {
@@ -15,20 +16,44 @@ namespace appliPandora.Forms
             this.Load += FormStats_Load;
         }
 
-        private void FormStats_Load(object sender, EventArgs e)
+        private void FormStats_Load(object? sender, EventArgs e)
         {
-            // Remplir le ComboBox de membres (stats 1)
-            // TODO: lier cboMembre depuis MesDatas.DsGlobal["Membre"]
+            // ComboBox membres (stat 1)
+            if (MesDatas.DsGlobal.Tables.Contains("Membre"))
+            {
+                DataTable dtM = new DataTable();
+                dtM.Columns.Add("matricule", typeof(string));
+                dtM.Columns.Add("affichage", typeof(string));
+                foreach (DataRow r in MesDatas.DsGlobal.Tables["Membre"]!.Rows)
+                    dtM.Rows.Add(r["matricule"], $"{r["nom"]} {r["prenom"]} ({r["matricule"]})" );
+                cboMembre.DataSource    = dtM;
+                cboMembre.DisplayMember = "affichage";
+                cboMembre.ValueMember   = "matricule";
+                cboMembre.SelectedIndex = -1;
+            }
 
-            // Remplir le ComboBox de missions (stats 5)
-            // TODO: lier cboMission depuis MesDatas.DsGlobal["Mission"]
+            // ComboBox missions (stat 5) — clé composée encodée "nomPlanete|numero"
+            if (MesDatas.DsGlobal.Tables.Contains("Mission"))
+            {
+                DataTable dtMis = new DataTable();
+                dtMis.Columns.Add("cle",       typeof(string));
+                dtMis.Columns.Add("affichage", typeof(string));
+                foreach (DataRow r in MesDatas.DsGlobal.Tables["Mission"]!.Rows)
+                    dtMis.Rows.Add(
+                        $"{r["nomPlanete"]}|{r["numero"]}",
+                        $"{r["nomPlanete"]} #{r["numero"]}");
+                cboMission.DataSource    = dtMis;
+                cboMission.DisplayMember = "affichage";
+                cboMission.ValueMember   = "cle";
+                cboMission.SelectedIndex = -1;
+            }
         }
 
         // ─── Stat 1 ───────────────────────────────────────────────────────────
         /// <summary>
         /// Liste des personnes avec qui le membre sélectionné est parti en mission.
         /// </summary>
-        private void btnStat1_Click(object sender, EventArgs e)
+        private void btnStat1_Click(object? sender, EventArgs e)
         {
             if (cboMembre.SelectedValue == null) return;
             string matricule = cboMembre.SelectedValue.ToString()!;
@@ -54,19 +79,26 @@ namespace appliPandora.Forms
         /// <summary>
         /// Pour les missions avec équipage > 10 : liste des dépenses + budgets.
         /// </summary>
-        private void btnStat2_Click(object sender, EventArgs e)
+        private void btnStat2_Click(object? sender, EventArgs e)
         {
             string sql = @"
-                SELECT m.nomPlanete, m.numero,
-                       m.budget AS budgetInitial,
-                       m.budget - COALESCE(SUM(d.montant), 0) AS budgetActuel,
+                WITH BudgetMission AS (
+                    SELECT m.nomPlanete, m.numero,
+                           m.budget AS budgetInitial,
+                           m.budget - COALESCE(SUM(d.montant), 0) AS budgetActuel
+                    FROM Mission m
+                    LEFT JOIN Depense d ON m.nomPlanete = d.nomPlanete AND m.numero = d.numeroMission
+                    WHERE (SELECT COUNT(*) FROM Composer c WHERE c.nomPlanete = m.nomPlanete AND c.numeroMission = m.numero) > 10
+                    GROUP BY m.nomPlanete, m.numero, m.budget
+                )
+                SELECT bm.nomPlanete, bm.numero,
+                       bm.budgetInitial,
+                       bm.budgetActuel,
                        d.dateD, d.motif, d.montant, td.libelle AS typeDepense
-                FROM Mission m
-                LEFT JOIN Depense d ON m.nomPlanete = d.nomPlanete AND m.numero = d.numeroMission
+                FROM BudgetMission bm
+                LEFT JOIN Depense d ON bm.nomPlanete = d.nomPlanete AND bm.numero = d.numeroMission
                 LEFT JOIN TypeDepense td ON d.idTypeDepense = td.id
-                WHERE (SELECT COUNT(*) FROM Composer c WHERE c.nomPlanete = m.nomPlanete AND c.numeroMission = m.numero) > 10
-                GROUP BY m.nomPlanete, m.numero, d.id
-                ORDER BY m.nomPlanete, m.numero";
+                ORDER BY bm.nomPlanete, bm.numero, d.dateD";
 
             ExecuterRequete(sql);
         }
@@ -75,7 +107,7 @@ namespace appliPandora.Forms
         /// <summary>
         /// Nombre de missions par planète (y compris planètes sans mission).
         /// </summary>
-        private void btnStat3_Click(object sender, EventArgs e)
+        private void btnStat3_Click(object? sender, EventArgs e)
         {
             string sql = @"
                 SELECT p.nom AS planete, COUNT(m.numero) AS nbMissions
@@ -91,7 +123,7 @@ namespace appliPandora.Forms
         /// <summary>
         /// Dépenses les plus élevées de chaque mission + chef de mission.
         /// </summary>
-        private void btnStat4_Click(object sender, EventArgs e)
+        private void btnStat4_Click(object? sender, EventArgs e)
         {
             string sql = @"
                 SELECT d.dateD || ' — ' || d.motif || ' — ' || d.montant || ' $ gal.' AS [Dépenses les plus importantes],
@@ -114,14 +146,15 @@ namespace appliPandora.Forms
         /// <summary>
         /// Informateurs ayant reçu le moins d'argent sur une mission donnée.
         /// </summary>
-        private void btnStat5_Click(object sender, EventArgs e)
+        private void btnStat5_Click(object? sender, EventArgs e)
         {
             if (cboMission.SelectedItem == null) return;
 
-            // La mission est identifiée par nomPlanete + numero
-            // TODO: extraire nomPlanete et numero depuis cboMission
-            string nomPlanete = ""; // TODO
-            int numero = 0;          // TODO
+            // Décoder la clé composée "nomPlanete|numero"
+            string cle   = cboMission.SelectedValue!.ToString()!;
+            string[] parts = cle.Split('|');
+            string nomPlanete = parts[0];
+            int    numero     = int.Parse(parts[1]);
 
             string sql = @"
                 SELECT i.nomCode, e.nom AS especeOrigine, SUM(c.sommeVersee) AS totalRecu
@@ -129,7 +162,7 @@ namespace appliPandora.Forms
                 JOIN Informateur i ON c.nomCodeInformateur = i.nomCode
                 JOIN Espece e ON i.idEspeceEnnemi = e.id
                 WHERE c.nomPlanete = @planet AND c.numeroMission = @num
-                GROUP BY i.nomCode
+                GROUP BY i.nomCode, e.nom
                 HAVING SUM(c.sommeVersee) = (
                     SELECT MIN(sTotal)
                     FROM (
@@ -158,13 +191,17 @@ namespace appliPandora.Forms
                 ada.Fill(dt);
                 dgvResultats.DataSource = dt;
                 lblNbResultats.Text = $"{dt.Rows.Count} résultat(s)";
-                Connexion.FermerConnexion();
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Erreur lors de la requête :\n{ex.Message}", "Erreur SQL",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+            finally
+            {
+                Connexion.FermerConnexion();
+            }
         }
     }
 }
+

@@ -107,3 +107,4 @@ namespace appliPandora.Forms
         private System.Windows.Forms.Label lblTitre;
     }
 }
+
