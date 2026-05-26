@@ -135,7 +135,7 @@ namespace appliPandora.Forms
 
             if (estEnnemi)
             {
-                lblDetType.Text = "Type : Ennemi";
+                lblDetType.Text = "Type : âš” Ennemi";
                 DataRow[] en = MesDatas.DsGlobal.Tables["Ennemi"]!.Select($"idEspece = {id}");
                 lblDetInfo1.Text = $"Type d'arme : {en[0]["typeArme"]}";
                 lblDetInfo2.Text = $"AgressivitÃ© : {en[0]["degreAgressivite"]}";
@@ -146,7 +146,7 @@ namespace appliPandora.Forms
                 DataRow[] al = MesDatas.DsGlobal.Tables["Allie"]!.Select($"idEspece = {id}");
                 if (al.Length > 0)
                 {
-                    lblDetType.Text  = "Type : Allie";
+                    lblDetType.Text  = "Type : ðŸ¤ AlliÃ©";
                     lblDetInfo1.Text = $"Premier contact : {al[0]["datePremierContact"]}";
                     lblDetInfo2.Text = $"Bienveillance : {al[0]["degreBienveillance"]}";
                     lblDetInfo3.Text = $"Instrument : {al[0]["instrumentMusique"]}";

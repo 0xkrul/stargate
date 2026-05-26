@@ -193,18 +193,24 @@ namespace appliPandora.Classes
             DataTable? depenses = MesDatas.DsGlobal.Tables["Depense"];
 
             int i = 0;
+            int total = 0;
             if (depenses != null)
             {
                 foreach (DataRow depense in depenses.Select(
                     $"nomPlanete = '{Filtre(nomPlanete)}' AND numeroMission = {numero}", "dateD ASC"))
                 {
+                    int montant = LireEntier(depense["montant"]);
+                    total += montant;
                     AjouterLigneTableau(table, i++,
                         depense["dateD"].ToString() ?? "",
                         LibelleTypeDepense(depense["idTypeDepense"]),
                         depense["motif"].ToString() ?? "",
-                        $"{LireEntier(depense["montant"]):N0}");
+                        $"{montant:N0}");
                 }
             }
+
+            if (i > 0)
+                AjouterLigneTotal(table, "TOTAL", $"{total:N0} $ gal.");
 
             AjouterTableOuMessage(doc, table, i, "Aucune depense enregistree.");
         }
@@ -296,6 +302,24 @@ namespace appliPandora.Classes
                     Padding = 4
                 });
             }
+        }
+
+        private static void AjouterLigneTotal(PdfPTable table, string libelle, string total)
+        {
+            BaseColor bg = new BaseColor(240, 240, 240);
+            table.AddCell(new PdfPCell(new Phrase("", PoliceNormal)) { BackgroundColor = bg });
+            table.AddCell(new PdfPCell(new Phrase("", PoliceNormal)) { BackgroundColor = bg });
+            table.AddCell(new PdfPCell(new Phrase(libelle, PoliceBold))
+            {
+                BackgroundColor = bg,
+                HorizontalAlignment = Element.ALIGN_RIGHT,
+                Padding = 4
+            });
+            table.AddCell(new PdfPCell(new Phrase(total, PoliceBold))
+            {
+                BackgroundColor = bg,
+                Padding = 4
+            });
         }
 
         private static void AjouterTableOuMessage(Document doc, PdfPTable table, int nbLignes, string messageVide)
