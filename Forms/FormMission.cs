@@ -174,6 +174,35 @@ namespace appliPandora.Forms
                     "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
+            if (_missionRow != null)
+            {
+                int budgetInitial = Convert.ToInt32(_missionRow["budget"]);
+                int consomme = 0;
+
+                if (MesDatas.DsGlobal.Tables.Contains("Depense"))
+                {
+                    string safePlanete = _nomPlanete.Replace("'", "''");
+                    foreach (DataRow d in MesDatas.DsGlobal.Tables["Depense"]!
+                        .Select($"nomPlanete='{safePlanete}' AND numeroMission={_numero}"))
+                    {
+                        consomme += Convert.ToInt32(d["montant"]);
+                    }
+                }
+
+                int nouveauTotal = consomme + (int)nudDepMontant.Value;
+                if (nouveauTotal > budgetInitial)
+                {
+                    DialogResult choix = MessageBox.Show(
+                        $"Cette depense fera depasser le budget ({nouveauTotal:N0} / {budgetInitial:N0}). Continuer ?",
+                        "Budget depasse",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Warning);
+
+                    if (choix != DialogResult.Yes)
+                        return;
+                }
+            }
+
             try
             {
                 using SQLiteCommand cmdMax = new SQLiteCommand(

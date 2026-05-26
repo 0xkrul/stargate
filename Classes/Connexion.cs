@@ -31,6 +31,8 @@ namespace appliPandora
                         string chaine = @"Data Source = Stargate.db";
                         connec = new SQLiteConnection(chaine);
                         connec.Open();
+                        using SQLiteCommand cmd = new SQLiteCommand("PRAGMA foreign_keys = ON;", connec);
+                        cmd.ExecuteNonQuery();
                         //MessageBox.Show(connec.State.ToString());
                     }
                     catch (SQLiteException err) 
