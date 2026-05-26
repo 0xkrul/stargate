@@ -1,18 +1,19 @@
-﻿using System.Data;
+using System.Data;
 using appliPandora.Classes;
 
 namespace appliPandora.Forms
 {
     /// <summary>
-    /// Volet 5 â€” Liste des races rÃ©pertoriÃ©es (mode dÃ©connectÃ©).
-    /// Filtres disponibles : type (Allie / Ennemi / Tout), couleur, planÃ¨te.
-    /// Clic sur une espÃ¨ce â†’ dÃ©tails selon son type.
+    /// Volet 5 ? Liste des races r?pertori?es (mode d?connect?).
+    /// Filtres disponibles : type (Allie / Ennemi / Tout), couleur, plan?te.
+    /// Clic sur une esp?ce ? d?tails selon son type.
     /// </summary>
     public partial class FormRaces : Form
     {
         public FormRaces()
         {
             InitializeComponent();
+            UiTheme.Apply(this);
             this.Load += FormRaces_Load;
         }
 
@@ -22,12 +23,12 @@ namespace appliPandora.Forms
             AppliquerFiltres();
         }
 
-        // â”€â”€â”€ Remplissage des filtres â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ??? Remplissage des filtres ??????????????????????????????????????????
         private void RemplirFiltres()
         {
             // Filtre "Type"
             cboFiltreType.Items.Clear();
-            cboFiltreType.Items.AddRange(new object[] { "Tout", "AlliÃ©", "Ennemi" });
+            cboFiltreType.Items.AddRange(new object[] { "Tout", "Alli?", "Ennemi" });
             cboFiltreType.SelectedIndex = 0;
 
             // Filtre "Couleur"
@@ -44,7 +45,7 @@ namespace appliPandora.Forms
             }
             cboFiltreCouleur.SelectedIndex = 0;
 
-            // Filtre "PlanÃ¨te"
+            // Filtre "Plan?te"
             cboFiltrePlanete.Items.Clear();
             cboFiltrePlanete.Items.Add("Toutes");
             if (MesDatas.DsGlobal.Tables.Contains("Planete"))
@@ -55,12 +56,12 @@ namespace appliPandora.Forms
             cboFiltrePlanete.SelectedIndex = 0;
         }
 
-        // â”€â”€â”€ Application des filtres â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ??? Application des filtres ??????????????????????????????????????????
         private void AppliquerFiltres()
         {
             if (!MesDatas.DsGlobal.Tables.Contains("Espece")) return;
 
-            string filtreType    = cboFiltreType.SelectedItem?.ToString()    ?? "Tout";
+            string filtreType    = cboFiltreType.SelectedItem?.ToString() ?? "Tout";
             string filtreCouleur = cboFiltreCouleur.SelectedItem?.ToString() ?? "Toutes";
             string filtrePlanete = cboFiltrePlanete.SelectedItem?.ToString() ?? "Toutes";
 
@@ -79,10 +80,10 @@ namespace appliPandora.Forms
                 int    id       = Convert.ToInt32(esp["id"]);
                 bool   estEn    = ennemis?.Select($"idEspece = {id}").Length > 0;
                 bool   estAl    = allies?.Select($"idEspece = {id}").Length > 0;
-                string type     = estEn ? "Ennemi" : estAl ? "AlliÃ©" : "Inconnu";
+                string type     = estEn ? "Ennemi" : estAl ? "Alli?" : "Inconnu";
 
                 if (filtreType == "Ennemi" && !estEn) continue;
-                if (filtreType == "AlliÃ©"  && !estAl) continue;
+                if (filtreType == "Alli?"  && !estAl) continue;
                 if (filtreCouleur != "Toutes" && esp["couleur"]?.ToString() != filtreCouleur) continue;
                 if (filtrePlanete != "Toutes")
                 {
@@ -111,7 +112,7 @@ namespace appliPandora.Forms
             AppliquerFiltres();
         }
 
-        // â”€â”€â”€ SÃ©lection d'une race â†’ affichage des dÃ©tails â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ??? S?lection d'une race ? affichage des d?tails ?????????????????????
         private void dgvRaces_SelectionChanged(object? sender, EventArgs e)
         {
             if (dgvRaces.CurrentRow == null) return;
@@ -129,16 +130,16 @@ namespace appliPandora.Forms
                 }
             }
 
-            // Infos spÃ©cifiques au type
+            // Infos sp?cifiques au type
             bool estEnnemi = MesDatas.DsGlobal.Tables.Contains("Ennemi") &&
                 MesDatas.DsGlobal.Tables["Ennemi"]!.Select($"idEspece = {id}").Length > 0;
 
             if (estEnnemi)
             {
-                lblDetType.Text = "Type : âš” Ennemi";
+                lblDetType.Text = "Type : ? Ennemi";
                 DataRow[] en = MesDatas.DsGlobal.Tables["Ennemi"]!.Select($"idEspece = {id}");
                 lblDetInfo1.Text = $"Type d'arme : {en[0]["typeArme"]}";
-                lblDetInfo2.Text = $"AgressivitÃ© : {en[0]["degreAgressivite"]}";
+                lblDetInfo2.Text = $"Agressivit? : {en[0]["degreAgressivite"]}";
                 lblDetInfo3.Text = "";
             }
             else if (MesDatas.DsGlobal.Tables.Contains("Allie"))
@@ -146,20 +147,20 @@ namespace appliPandora.Forms
                 DataRow[] al = MesDatas.DsGlobal.Tables["Allie"]!.Select($"idEspece = {id}");
                 if (al.Length > 0)
                 {
-                    lblDetType.Text  = "Type : ðŸ¤ AlliÃ©";
+                    lblDetType.Text  = "Type : ?? Alli?";
                     lblDetInfo1.Text = $"Premier contact : {al[0]["datePremierContact"]}";
                     lblDetInfo2.Text = $"Bienveillance : {al[0]["degreBienveillance"]}";
                     lblDetInfo3.Text = $"Instrument : {al[0]["instrumentMusique"]}";
                 }
             }
 
-            // PlanÃ¨tes habitÃ©es
+            // Plan?tes habit?es
             if (MesDatas.DsGlobal.Tables.Contains("Habiter"))
             {
                 DataRow[] hab = MesDatas.DsGlobal.Tables["Habiter"]!.Select($"idEspece = {id}");
                 DataTable dtP = new DataTable();
-                dtP.Columns.Add("PlanÃ¨te",    typeof(string));
-                dtP.Columns.Add("PrÃ©sence %", typeof(string));
+                dtP.Columns.Add("Plan?te",    typeof(string));
+                dtP.Columns.Add("Pr?sence %", typeof(string));
                 foreach (DataRow h in hab)
                     dtP.Rows.Add(h["nomPlanete"], $"{h["pourcentage"]} %");
                 dgvPlanetes.DataSource = dtP;

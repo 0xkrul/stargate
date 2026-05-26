@@ -10,10 +10,48 @@ namespace appliPandora.Forms
     /// </summary>
     public partial class FormPlanetes : Form
     {
+        private PictureBox? _planetImage;
+        private Label? _planetImageCaption;
+
         public FormPlanetes()
         {
             InitializeComponent();
+            UiTheme.Apply(this);
+            CreerHeroPlanete();
             this.Load += FormPlanetes_Load;
+        }
+
+        private void CreerHeroPlanete()
+        {
+            _planetImage = new PictureBox
+            {
+                Location = new Point(345, 10),
+                Size = new Size(310, 130),
+                SizeMode = PictureBoxSizeMode.Zoom,
+                BackColor = UiTheme.Surface
+            };
+
+            _planetImageCaption = new Label
+            {
+                Location = new Point(665, 18),
+                Size = new Size(480, 34),
+                Font = new Font("Segoe UI Semibold", 14F, FontStyle.Regular),
+                Text = "Planète",
+                ForeColor = UiTheme.Text
+            };
+
+            grpDetails.Location = new Point(665, 55);
+            grpDetails.Size = new Size(480, 85);
+            lblNomPlanete.Visible = false;
+            lblTemp.Location = new Point(12, 24);
+            lblGravite.Location = new Point(12, 50);
+            lblDataBaz.Location = new Point(245, 24);
+            lblTemp.Size = new Size(220, 23);
+            lblGravite.Size = new Size(220, 23);
+            lblDataBaz.Size = new Size(220, 23);
+
+            Controls.Add(_planetImage);
+            Controls.Add(_planetImageCaption);
         }
 
         private void FormPlanetes_Load(object? sender, EventArgs e)
@@ -41,18 +79,42 @@ namespace appliPandora.Forms
             AfficherDetailsPlanete(nomPlanete);
             AfficherEspeces(nomPlanete);
             AfficherMissions(nomPlanete);
+            ActualiserImagePlanete(nomPlanete);
+        }
+
+        private void ActualiserImagePlanete(string nomPlanete)
+        {
+            if (_planetImage == null || _planetImageCaption == null)
+                return;
+
+            _planetImage.Image?.Dispose();
+            _planetImage.Image = PlanetImageProvider.Load(nomPlanete);
+            _planetImageCaption.Text = nomPlanete;
         }
 
         private void AfficherDetailsPlanete(string nomPlanete)
         {
             DataRow[] rows = MesDatas.DsGlobal.Tables["Planete"]!
-                .Select($"nom = '{nomPlanete}'");
+                .Select($"nom = '{nomPlanete.Replace("'", "''")}'");
             if (rows.Length == 0) return;
             DataRow p = rows[0];
             lblNomPlanete.Text = nomPlanete;
-            lblTemp.Text    = $"Température : {p["temperature"]} °C";
-            lblGravite.Text = $"Gravité : {p["gravite"]} g";
-            lblDataBaz.Text = $"DataBaz présent : {(Convert.ToInt32(p["dataBazON"]) == 1 ? "✓ Oui" : "✗ Non")}";
+            lblTemp.Text = $"Température : {ValeurOuTiret(p["temperature"])} °C";
+            lblGravite.Text = $"Gravité : {ValeurOuTiret(p["gravite"])} g";
+            lblDataBaz.Text = $"DataBaz présent : {DataBazTexte(p["dataBazON"])}";
+        }
+
+        private static string ValeurOuTiret(object value)
+        {
+            return value == DBNull.Value || value == null ? "—" : value.ToString() ?? "—";
+        }
+
+        private static string DataBazTexte(object value)
+        {
+            if (value == DBNull.Value || value == null)
+                return "—";
+
+            return Convert.ToInt32(value) == 1 ? "✓ Oui" : "✗ Non";
         }
 
         private void AfficherEspeces(string nomPlanete)

@@ -13,6 +13,7 @@ namespace appliPandora.Forms
         public FormAuth()
         {
             InitializeComponent();
+            UiTheme.Apply(this);
         }
 
         // ─── Bouton Connexion ─────────────────────────────────────────────────

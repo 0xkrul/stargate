@@ -20,6 +20,7 @@ namespace appliPandora.Forms
         public FormMission(string nomPlanete, int numero)
         {
             InitializeComponent();
+            UiTheme.Apply(this);
             _nomPlanete = nomPlanete;
             _numero     = numero;
             this.Load  += FormMission_Load;

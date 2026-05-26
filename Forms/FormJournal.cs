@@ -1,4 +1,5 @@
 using System.Data;
+using appliPandora.Classes;
 
 namespace appliPandora.Forms
 {
@@ -20,6 +21,7 @@ namespace appliPandora.Forms
         public FormJournal(string nomPlanete, int numero)
         {
             InitializeComponent();
+            UiTheme.Apply(this);
             _nomPlanete = nomPlanete;
             _numero     = numero;
             this.Load  += FormJournal_Load;

@@ -1,5 +1,6 @@
 using System.Data;
 using System.Data.SQLite;
+using appliPandora.Classes;
 
 namespace appliPandora.Forms
 {
@@ -17,6 +18,7 @@ namespace appliPandora.Forms
         public FormNouvelleMission()
         {
             InitializeComponent();
+            UiTheme.Apply(this);
             this.Load += FormNouvelleMission_Load;
             dtpDateDepart.ValueChanged += DatesMission_ValueChanged;
             dtpDateRetour.ValueChanged += DatesMission_ValueChanged;

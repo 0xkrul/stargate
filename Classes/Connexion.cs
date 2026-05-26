@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Linq;
@@ -35,7 +35,7 @@ namespace appliPandora
                         cmd.ExecuteNonQuery();
                         //MessageBox.Show(connec.State.ToString());
                     }
-                    catch (SQLiteException err) 
+                    catch (SQLiteException err)
                     {
                         Console.WriteLine($"Erreur lors de l'ouverture de la connexion : {err.Message}");
                         throw;

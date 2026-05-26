@@ -10,10 +10,39 @@ namespace appliPandora.Forms
     /// </summary>
     public partial class FormDashboard : Form
     {
+        private PictureBox? _planetPreview;
+        private Label? _planetPreviewTitle;
+
         public FormDashboard()
         {
             InitializeComponent();
+            UiTheme.Apply(this);
+            CreerApercuPlanete();
             this.Load += FormDashboard_Load;
+            dgvMissions.SelectionChanged += dgvMissions_SelectionChanged;
+        }
+
+        private void CreerApercuPlanete()
+        {
+            _planetPreview = new PictureBox
+            {
+                Location = new Point(1190, 395),
+                Size = new Size(160, 120),
+                SizeMode = PictureBoxSizeMode.Zoom,
+                BackColor = UiTheme.Surface
+            };
+
+            _planetPreviewTitle = new Label
+            {
+                Location = new Point(1190, 525),
+                Size = new Size(160, 48),
+                TextAlign = ContentAlignment.TopCenter,
+                ForeColor = UiTheme.MutedText,
+                Text = "Sélectionnez une mission"
+            };
+
+            Controls.Add(_planetPreview);
+            Controls.Add(_planetPreviewTitle);
         }
 
         // ─── Chargement initial ────────────────────────────────────────────────
@@ -111,6 +140,26 @@ namespace appliPandora.Forms
             if (dgvMissions.Columns.Contains("numero"))
                 dgvMissions.Columns["numero"]!.Visible = false;
             dgvMissions.AutoResizeColumns();
+            ActualiserApercuPlanete();
+        }
+
+        private void dgvMissions_SelectionChanged(object? sender, EventArgs e)
+        {
+            ActualiserApercuPlanete();
+        }
+
+        private void ActualiserApercuPlanete()
+        {
+            if (_planetPreview == null || _planetPreviewTitle == null || dgvMissions.CurrentRow == null)
+                return;
+
+            string? nomPlanete = dgvMissions.CurrentRow.Cells["nomPlanete"].Value?.ToString();
+            if (string.IsNullOrWhiteSpace(nomPlanete))
+                return;
+
+            _planetPreview.Image?.Dispose();
+            _planetPreview.Image = PlanetImageProvider.Load(nomPlanete);
+            _planetPreviewTitle.Text = nomPlanete;
         }
 
         private static string StatutMission(DataRow mission)

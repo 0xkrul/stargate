@@ -13,6 +13,7 @@ namespace appliPandora.Forms
         public FormStats()
         {
             InitializeComponent();
+            UiTheme.Apply(this);
             this.Load += FormStats_Load;
         }
 
